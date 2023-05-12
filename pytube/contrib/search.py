@@ -179,10 +179,7 @@ class Search:
                         vid_view_count_text = vid_renderer['viewCountText']['simpleText']
                     # Strip ' views' text, then remove commas
                     stripped_text = vid_view_count_text.split()[0].replace(',','')
-                    if stripped_text == 'No':
-                        vid_view_count = 0
-                    else:
-                        vid_view_count = int(stripped_text)
+                    vid_view_count = 0 if stripped_text == 'No' else int(stripped_text)
                 else:
                     vid_view_count = 0
                 if 'lengthText' in vid_renderer:

@@ -95,7 +95,7 @@ def test_setup_logger(logging):
 @mock.patch('pytube.request.urlopen')
 def test_create_mock_html_json(mock_url_open, mock_open):
     video_id = '2lAe1cqCOXo'
-    gzip_html_filename = 'yt-video-%s-html.json.gz' % video_id
+    gzip_html_filename = f'yt-video-{video_id}-html.json.gz'
 
     # Get the pytube directory in order to navigate to /tests/mocks
     pytube_dir_path = os.path.abspath(

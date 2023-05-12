@@ -323,7 +323,7 @@ def test_segmented_stream_on_404(cipher_signature):
             response_headers = [
                 {
                     'content-length': len(r),
-                    'Content-Range': '0-%s/%s' % (str(len(r)), str(len(r)))
+                    'Content-Range': f'0-{len(r)}/{len(r)}',
                 }
                 for r in responses
             ]

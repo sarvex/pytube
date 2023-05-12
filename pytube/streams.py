@@ -347,8 +347,7 @@ class Stream:
 
         """
         logger.debug("download finished")
-        on_complete = self._monostate.on_complete
-        if on_complete:
+        if on_complete := self._monostate.on_complete:
             logger.debug("calling on_complete callback %s", on_complete)
             on_complete(self, file_path)
 

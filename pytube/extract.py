@@ -47,10 +47,7 @@ def recording_available(watch_html):
     unavailable_strings = [
         'This live stream recording is not available.'
     ]
-    for string in unavailable_strings:
-        if string in watch_html:
-            return False
-    return True
+    return all(string not in watch_html for string in unavailable_strings)
 
 
 def is_private(watch_html):
@@ -67,10 +64,7 @@ def is_private(watch_html):
         "\"simpleText\":\"Private video\"",
         "This video is private."
     ]
-    for string in private_strings:
-        if string in watch_html:
-            return True
-    return False
+    return any(string in watch_html for string in private_strings)
 
 
 def is_age_restricted(watch_html: str) -> bool:
@@ -175,11 +169,10 @@ def channel_name(url: str) -> str:
     ]
     for pattern in patterns:
         regex = re.compile(pattern)
-        function_match = regex.search(url)
-        if function_match:
+        if function_match := regex.search(url):
             logger.debug("finished regex search, matched: %s", pattern)
-            uri_style = function_match.group(1)
-            uri_identifier = function_match.group(2)
+            uri_style = function_match[1]
+            uri_identifier = function_match[2]
             return f'/{uri_style}/{uri_identifier}'
 
     raise RegexMatchError(
@@ -246,7 +239,7 @@ def video_info_url_age_restricted(video_id: str, embed_html: str) -> str:
 
 
 def _video_info_url(params: OrderedDict) -> str:
-    return "https://www.youtube.com/get_video_info?" + urlencode(params)
+    return f"https://www.youtube.com/get_video_info?{urlencode(params)}"
 
 
 def js_url(html: str) -> str:
@@ -262,7 +255,7 @@ def js_url(html: str) -> str:
         base_js = get_ytplayer_config(html)['assets']['js']
     except (KeyError, RegexMatchError):
         base_js = get_ytplayer_js(html)
-    return "https://youtube.com" + base_js
+    return f"https://youtube.com{base_js}"
 
 
 def mime_type_codec(mime_type_codec: str) -> Tuple[str, List[str]]:
@@ -306,12 +299,9 @@ def get_ytplayer_js(html: str) -> Any:
     ]
     for pattern in js_url_patterns:
         regex = re.compile(pattern)
-        function_match = regex.search(html)
-        if function_match:
+        if function_match := regex.search(html):
             logger.debug("finished regex search, matched: %s", pattern)
-            yt_player_js = function_match.group(1)
-            return yt_player_js
-
+            return function_match[1]
     raise RegexMatchError(
         caller="get_ytplayer_js", pattern="js_url_patterns"
     )
@@ -385,11 +375,11 @@ def get_ytcfg(html: str) -> str:
         try:
             found_objects = parse_for_all_objects(html, pattern)
             for obj in found_objects:
-                ytcfg.update(obj)
+                ytcfg |= obj
         except HTMLParseError:
             continue
 
-    if len(ytcfg) > 0:
+    if ytcfg:
         return ytcfg
 
     raise RegexMatchError(
@@ -412,11 +402,12 @@ def apply_signature(stream_manifest: Dict, vid_info: Dict, js: str) -> None:
         try:
             url: str = stream["url"]
         except KeyError:
-            live_stream = (
-                vid_info.get("playabilityStatus", {},)
-                .get("liveStreamability")
-            )
-            if live_stream:
+            if live_stream := (
+                vid_info.get(
+                    "playabilityStatus",
+                    {},
+                ).get("liveStreamability")
+            ):
                 raise LiveStreamError("UNKNOWN")
         # 403 Forbidden fix.
         if "signature" in url or (
@@ -484,11 +475,10 @@ def apply_descrambler(stream_data: Dict) -> None:
 
     # Extract url and s from signatureCiphers as necessary
     for data in formats:
-        if 'url' not in data:
-            if 'signatureCipher' in data:
-                cipher_url = parse_qs(data['signatureCipher'])
-                data['url'] = cipher_url['url'][0]
-                data['s'] = cipher_url['s'][0]
+        if 'url' not in data and 'signatureCipher' in data:
+            cipher_url = parse_qs(data['signatureCipher'])
+            data['url'] = cipher_url['url'][0]
+            data['s'] = cipher_url['s'][0]
         data['is_otf'] = data.get('type') == 'FORMAT_STREAM_TYPE_OTF'
 
     logger.debug("applying descrambler")

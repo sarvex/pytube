@@ -242,8 +242,6 @@ def test_trimmed_pagination_not_found(
         "{}",
     ]
     playlist = Playlist(url) # noqa
-    # assert len(list(playlist.trimmed("wont-be-found"))) == 101 # noqa
-    assert True
 
 
 # test case for playlist with submenus

@@ -26,9 +26,7 @@ def main():
     parser = argparse.ArgumentParser(description=main.__doc__)
     args = _parse_args(parser)
     if args.verbose:
-        log_filename = None
-        if args.logfile:
-            log_filename = args.logfile
+        log_filename = args.logfile if args.logfile else None
         setup_logger(logging.DEBUG, log_filename=log_filename)
         logger.debug(f'Pytube version: {__version__}')
 
@@ -93,7 +91,7 @@ def _parse_args(
         "url", help="The YouTube /watch or /playlist url", nargs="?"
     )
     parser.add_argument(
-        "--version", action="version", version="%(prog)s " + __version__,
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
     parser.add_argument(
         "--itag", type=int, help="The itag for the desired stream",

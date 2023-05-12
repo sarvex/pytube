@@ -154,11 +154,9 @@ class YouTube:
     @property
     def streaming_data(self):
         """Return streamingData from video info."""
-        if 'streamingData' in self.vid_info:
-            return self.vid_info['streamingData']
-        else:
+        if 'streamingData' not in self.vid_info:
             self.bypass_age_gate()
-            return self.vid_info['streamingData']
+        return self.vid_info['streamingData']
 
     @property
     def fmt_streams(self):
@@ -301,12 +299,11 @@ class YouTube:
 
         :rtype: str
         """
-        thumbnail_details = (
+        if thumbnail_details := (
             self.vid_info.get("videoDetails", {})
             .get("thumbnail", {})
             .get("thumbnails")
-        )
-        if thumbnail_details:
+        ):
             thumbnail_details = thumbnail_details[-1]  # last item has max size
             return thumbnail_details["url"]
 
@@ -437,11 +434,9 @@ class YouTube:
 
         :rtype: YouTubeMetadata
         """
-        if self._metadata:
-            return self._metadata
-        else:
+        if not self._metadata:
             self._metadata = extract.metadata(self.initial_data)
-            return self._metadata
+        return self._metadata
 
     def register_on_progress_callback(self, func: Callable[[Any, bytes, int], None]):
         """Register a download progress callback function post initialization.

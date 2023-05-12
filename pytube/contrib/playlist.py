@@ -75,11 +75,9 @@ class Playlist(Sequence):
 
         :rtype: dict
         """
-        if self._initial_data:
-            return self._initial_data
-        else:
+        if not self._initial_data:
             self._initial_data = extract.initial_data(self.html)
-            return self._initial_data
+        return self._initial_data
 
     @property
     def sidebar_info(self):
@@ -87,12 +85,10 @@ class Playlist(Sequence):
 
         :rtype: dict
         """
-        if self._sidebar_info:
-            return self._sidebar_info
-        else:
+        if not self._sidebar_info:
             self._sidebar_info = self.initial_data['sidebar'][
                 'playlistSidebarRenderer']['items']
-            return self._sidebar_info
+        return self._sidebar_info
 
     @property
     def yt_api_key(self):

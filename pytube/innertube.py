@@ -97,15 +97,13 @@ class InnerTube:
         self.expires = None
 
         # Try to load from file if specified
-        if self.use_oauth and self.allow_cache:
-            # Try to load from file if possible
-            if os.path.exists(_token_file):
-                with open(_token_file) as f:
-                    data = json.load(f)
-                    self.access_token = data['access_token']
-                    self.refresh_token = data['refresh_token']
-                    self.expires = data['expires']
-                    self.refresh_bearer_token()
+        if self.use_oauth and self.allow_cache and os.path.exists(_token_file):
+            with open(_token_file) as f:
+                data = json.load(f)
+                self.access_token = data['access_token']
+                self.refresh_token = data['refresh_token']
+                self.expires = data['expires']
+                self.refresh_bearer_token()
 
     def cache_tokens(self):
         """Cache tokens to file if allowed."""
@@ -234,11 +232,9 @@ class InnerTube:
         if self.use_oauth:
             if self.access_token:
                 self.refresh_bearer_token()
-                headers['Authorization'] = f'Bearer {self.access_token}'
             else:
                 self.fetch_bearer_token()
-                headers['Authorization'] = f'Bearer {self.access_token}'
-
+            headers['Authorization'] = f'Bearer {self.access_token}'
         response = request._execute_request(
             endpoint_url,
             'POST',
@@ -296,7 +292,7 @@ class InnerTube:
         query = {
             'videoId': video_id,
         }
-        query.update(self.base_params)
+        query |= self.base_params
         return self._call_api(endpoint, query, self.base_data)
 
     def search(self, search_query, continuation=None):
@@ -312,11 +308,11 @@ class InnerTube:
         query = {
             'query': search_query
         }
-        query.update(self.base_params)
+        query |= self.base_params
         data = {}
         if continuation:
             data['continuation'] = continuation
-        data.update(self.base_data)
+        data |= self.base_data
         return self._call_api(endpoint, query, data)
 
     def verify_age(self, video_id):
@@ -341,9 +337,8 @@ class InnerTube:
             },
             'setControvercy': True
         }
-        data.update(self.base_data)
-        result = self._call_api(endpoint, self.base_params, data)
-        return result
+        data |= self.base_data
+        return self._call_api(endpoint, self.base_params, data)
 
     def get_transcript(self, video_id):
         """Make a request to the get_transcript endpoint.
@@ -354,6 +349,5 @@ class InnerTube:
         query = {
             'videoId': video_id,
         }
-        query.update(self.base_params)
-        result = self._call_api(endpoint, query, self.base_data)
-        return result
+        query |= self.base_params
+        return self._call_api(endpoint, query, self.base_data)

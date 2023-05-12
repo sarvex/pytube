@@ -130,7 +130,7 @@ def regex_search(pattern: str, string: str, group: int) -> str:
 
     logger.debug("matched regex search: %s", pattern)
 
-    return results.group(group)
+    return results[group]
 
 
 def safe_filename(s: str, max_length: int = 255) -> str:
@@ -307,7 +307,7 @@ def create_mock_html_json(vid_id) -> Dict[str, Any]:
         Dict used to generate the json.gz file
     """
     from pytube import YouTube
-    gzip_filename = 'yt-video-%s-html.json.gz' % vid_id
+    gzip_filename = f'yt-video-{vid_id}-html.json.gz'
 
     # Get the pytube directory in order to navigate to /tests/mocks
     pytube_dir_path = os.path.abspath(

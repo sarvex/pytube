@@ -27,11 +27,11 @@ class Channel(Playlist):
             f"https://www.youtube.com{self.channel_uri}"
         )
 
-        self.videos_url = self.channel_url + '/videos'
-        self.playlists_url = self.channel_url + '/playlists'
-        self.community_url = self.channel_url + '/community'
-        self.featured_channels_url = self.channel_url + '/channels'
-        self.about_url = self.channel_url + '/about'
+        self.videos_url = f'{self.channel_url}/videos'
+        self.playlists_url = f'{self.channel_url}/playlists'
+        self.community_url = f'{self.channel_url}/community'
+        self.featured_channels_url = f'{self.channel_url}/channels'
+        self.about_url = f'{self.channel_url}/about'
 
         # Possible future additions
         self._playlists_html = None
@@ -86,11 +86,9 @@ class Channel(Playlist):
 
         :rtype: str
         """
-        if self._playlists_html:
-            return self._playlists_html
-        else:
+        if not self._playlists_html:
             self._playlists_html = request.get(self.playlists_url)
-            return self._playlists_html
+        return self._playlists_html
 
     @property
     def community_html(self):
@@ -100,11 +98,9 @@ class Channel(Playlist):
 
         :rtype: str
         """
-        if self._community_html:
-            return self._community_html
-        else:
+        if not self._community_html:
             self._community_html = request.get(self.community_url)
-            return self._community_html
+        return self._community_html
 
     @property
     def featured_channels_html(self):
@@ -114,11 +110,9 @@ class Channel(Playlist):
 
         :rtype: str
         """
-        if self._featured_channels_html:
-            return self._featured_channels_html
-        else:
+        if not self._featured_channels_html:
             self._featured_channels_html = request.get(self.featured_channels_url)
-            return self._featured_channels_html
+        return self._featured_channels_html
 
     @property
     def about_html(self):
@@ -128,11 +122,9 @@ class Channel(Playlist):
 
         :rtype: str
         """
-        if self._about_html:
-            return self._about_html
-        else:
+        if not self._about_html:
             self._about_html = request.get(self.about_url)
-            return self._about_html
+        return self._about_html
 
     @staticmethod
     def _extract_videos(raw_json: str) -> Tuple[List[str], Optional[str]]:

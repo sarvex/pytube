@@ -25,11 +25,9 @@ def _execute_request(
 ):
     base_headers = {"User-Agent": "Mozilla/5.0", "accept-language": "en-US,en"}
     if headers:
-        base_headers.update(headers)
-    if data:
-        # encode data for request
-        if not isinstance(data, bytes):
-            data = bytes(json.dumps(data), encoding="utf-8")
+        base_headers |= headers
+    if data and not isinstance(data, bytes):
+        data = bytes(json.dumps(data), encoding="utf-8")
     if url.lower().startswith("http"):
         request = Request(url, headers=base_headers, method=method, data=data)
     else:
@@ -96,7 +94,7 @@ def seq_stream(
     """
     # YouTube expects a request sequence number as part of the parameters.
     split_url = parse.urlsplit(url)
-    base_url = '%s://%s/%s?' % (split_url.scheme, split_url.netloc, split_url.path)
+    base_url = f'{split_url.scheme}://{split_url.netloc}/{split_url.path}?'
 
     querys = dict(parse.parse_qsl(split_url.query))
 
@@ -114,9 +112,8 @@ def seq_stream(
     stream_info = segment_data.split(b'\r\n')
     segment_count_pattern = re.compile(b'Segment-Count: (\\d+)')
     for line in stream_info:
-        match = segment_count_pattern.search(line)
-        if match:
-            segment_count = int(match.group(1).decode('utf-8'))
+        if match := segment_count_pattern.search(line):
+            segment_count = int(match[1].decode('utf-8'))
 
     # We request these segments sequentially to build the file.
     seq_num = 1
@@ -163,9 +160,7 @@ def stream(
             except URLError as e:
                 # We only want to skip over timeout errors, and
                 # raise any other URLError exceptions
-                if isinstance(e.reason, socket.timeout):
-                    pass
-                else:
+                if not isinstance(e.reason, socket.timeout):
                     raise
             except http.client.IncompleteRead:
                 # Allow retries on IncompleteRead errors for unreliable connections
@@ -207,10 +202,9 @@ def seq_filesize(url):
     :param str url: The URL to get the size of
     :returns: int: size in bytes of remote file
     """
-    total_filesize = 0
     # YouTube expects a request sequence number as part of the parameters.
     split_url = parse.urlsplit(url)
-    base_url = '%s://%s/%s?' % (split_url.scheme, split_url.netloc, split_url.path)
+    base_url = f'{split_url.scheme}://{split_url.netloc}/{split_url.path}?'
     querys = dict(parse.parse_qsl(split_url.query))
 
     # The 0th sequential request provides the file headers, which tell us
@@ -222,9 +216,7 @@ def seq_filesize(url):
     )
 
     response_value = response.read()
-    # The file header must be added to the total filesize
-    total_filesize += len(response_value)
-
+    total_filesize = 0 + len(response_value)
     # We can then parse the header to find the number of segments
     segment_count = 0
     stream_info = response_value.split(b'\r\n')

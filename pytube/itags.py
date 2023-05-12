@@ -1,4 +1,5 @@
 """This module contains a lookup table of YouTube's itag values."""
+
 from typing import Dict
 
 PROGRESSIVE_VIDEO = {
@@ -109,11 +110,7 @@ DASH_AUDIO = {
     328: (None, None),  # MP4
 }
 
-ITAGS = {
-    **PROGRESSIVE_VIDEO,
-    **DASH_VIDEO,
-    **DASH_AUDIO,
-}
+ITAGS = PROGRESSIVE_VIDEO | DASH_VIDEO | DASH_AUDIO
 
 HDR = [330, 331, 332, 333, 334, 335, 336, 337]
 _3D = [82, 83, 84, 85, 100, 101, 102]
@@ -126,11 +123,8 @@ def get_format_profile(itag: int) -> Dict:
     :param str itag:
         YouTube format identifier code.
     """
-    itag = int(itag)
-    if itag in ITAGS:
-        res, bitrate = ITAGS[itag]
-    else:
-        res, bitrate = None, None
+    itag = itag
+    res, bitrate = ITAGS[itag] if itag in ITAGS else (None, None)
     return {
         "resolution": res,
         "abr": bitrate,
